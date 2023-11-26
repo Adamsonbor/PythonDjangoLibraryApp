@@ -1,0 +1,27 @@
+version: "3.5"
+
+services:
+  django:
+    build: ./Backend
+    container_name: django_python_library
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./Backend/:/app/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  celery:
+    build: ./Backend
+    command: python -m celery -A settings worker -l info
+    volumes:
+      - ./Backend/:/app/
+    depends_on:
+      - django
+      - redis
+
+  redis:
+    image: "redis:7.0-alpine"
+    ports:
+      - "6379:6379"
