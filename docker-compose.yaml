@@ -27,18 +27,9 @@ services:
       - "3306"
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "mysql"]
+      interval: 5s
       timeout: 50s
       retries: 5
-
-  celery:
-    build: ./Backend
-    container_name: django_library_celey
-    command: python -m celery -A settings worker -l info
-    volumes:
-      - ./Backend/:/app/
-    depends_on:
-      - django
-      - redis
 
   redis:
     image: "redis:7.0-alpine"
