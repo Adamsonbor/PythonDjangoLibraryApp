@@ -3,17 +3,36 @@ version: "3.5"
 services:
   django:
     build: ./Backend
-    container_name: django_python_library
-    command: python manage.py runserver 0.0.0.0:8000
+    container_name: django_library
     volumes:
       - ./Backend/:/app/
     ports:
       - "8000:8000"
+    entrypoint: /app/docker-entrypoint.sh
     depends_on:
-      - redis
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:latest
+    container_name: django_library_db
+    environment:
+      MYSQL_DATABASE: "mysql"
+      MYSQL_USER: "django"
+      MYSQL_PASSWORD: "12345"
+      MYSQL_ROOT_PASSWORD: "12345"
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "mysql"]
+      timeout: 50s
+      retries: 5
 
   celery:
     build: ./Backend
+    container_name: django_library_celey
     command: python -m celery -A settings worker -l info
     volumes:
       - ./Backend/:/app/
@@ -23,5 +42,6 @@ services:
 
   redis:
     image: "redis:7.0-alpine"
+    container_name: django_library_redis
     ports:
       - "6379:6379"
